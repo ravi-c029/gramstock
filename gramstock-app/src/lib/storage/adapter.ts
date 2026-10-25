@@ -74,19 +74,21 @@ class S3StorageAdapter implements StorageAdapter {
   private readonly region: string;
 
   constructor() {
-    this.bucket = process.env.AWS_S3_BUCKET ?? "";
-    this.region = process.env.AWS_REGION ?? "us-east-1";
-
-    if (!this.bucket) {
-      throw new Error("AWS_S3_BUCKET environment variable is required for S3 storage");
-    }
+    this.bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET || "gramstock-cloud-dataset-2026";
+    this.region = process.env.APP_REGION || process.env.AWS_REGION || "ap-south-1";
   }
 
   async upload(buffer: Buffer, fileName: string, mimeType: string): Promise<UploadResult> {
     // Lazy import AWS SDK to avoid bundling it when not needed
     const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
 
-    const client = new S3Client({ region: this.region });
+    const accessKeyId = process.env.APP_AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.APP_AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
+
+    const client = new S3Client({
+      region: this.region,
+      ...(accessKeyId && secretAccessKey ? { credentials: { accessKeyId, secretAccessKey } } : {}),
+    });
     const ext = path.extname(fileName);
     const key = `uploads/${Date.now()}-${crypto.randomBytes(8).toString("hex")}${ext}`;
 
@@ -154,6 +156,7 @@ export function getStorageAdapter(): StorageAdapter {
 
   if (adapterType === "s3") {
     const hasCredentials =
+      process.env.APP_AWS_ACCESS_KEY_ID ||
       process.env.AWS_ACCESS_KEY_ID ||
       process.env.AWS_ROLE_ARN ||
       process.env.AWS_WEB_IDENTITY_TOKEN_FILE;
@@ -179,7 +182,8 @@ export function getActiveAdapterName(): "local" | "s3" {
   const adapterType = process.env.STORAGE_ADAPTER ?? "local";
   if (
     adapterType === "s3" &&
-    (process.env.AWS_ACCESS_KEY_ID ||
+    (process.env.APP_AWS_ACCESS_KEY_ID ||
+      process.env.AWS_ACCESS_KEY_ID ||
       process.env.AWS_ROLE_ARN ||
       process.env.AWS_WEB_IDENTITY_TOKEN_FILE)
   ) {
