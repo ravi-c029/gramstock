@@ -1,0 +1,15 @@
+{
+  "name": "gramstock-root",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "gramstock-app"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=gramstock-app",
+    "start": "npm run start --workspace=gramstock-app"
+  },
+  "dependencies": {
+    "next": "16.4.3"
+  }
+}
