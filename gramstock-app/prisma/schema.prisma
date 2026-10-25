@@ -1,0 +1,275 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================
+// USERS & AUTH
+// =============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  businesses    Business[]
+  sessions      Session[]
+
+  @@index([email])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+// =============================================
+// BUSINESSES (TENANTS)
+// =============================================
+
+model Business {
+  id          String           @id @default(cuid())
+  name        String
+  category    BusinessCategory @default(RETAIL)
+  description String?
+  logoUrl     String?
+  ownerId     String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  owner        User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  schemas      BusinessSchema[]
+  products     Product[]
+  importJobs   ImportJob[]
+  stockMovements StockMovement[]
+
+  @@index([ownerId])
+}
+
+enum BusinessCategory {
+  GROCERY
+  MEDICAL
+  RESTAURANT
+  GARMENTS
+  RETAIL
+  CUSTOM
+}
+
+// =============================================
+// SCHEMAS (FIELD CONFIGURATION)
+// =============================================
+
+model BusinessSchema {
+  id         String   @id @default(cuid())
+  businessId String
+  version    Int      @default(1)
+  isActive   Boolean  @default(false)
+  name       String   @default("Default Schema")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  fields   SchemaField[]
+  products Product[]
+
+  @@unique([businessId, version])
+  @@index([businessId, isActive])
+}
+
+model SchemaField {
+  id              String      @id @default(cuid())
+  schemaId        String
+  name            String
+  label           String
+  type            FieldType   @default(TEXT)
+  required        Boolean     @default(false)
+  isIdentifier    Boolean     @default(false)
+  isFilterable    Boolean     @default(false)
+  isAggregatable  Boolean     @default(false)
+  order           Int         @default(0)
+  defaultValue    String?
+  unit            String?
+  options         String[]    // For SELECT type
+  validationRules Json?       // Custom validation config
+  sourceColumn    String?     // Original CSV column name
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  schema BusinessSchema @relation(fields: [schemaId], references: [id], onDelete: Cascade)
+
+  @@unique([schemaId, name])
+  @@index([schemaId, order])
+}
+
+enum FieldType {
+  TEXT
+  INTEGER
+  DECIMAL
+  CURRENCY
+  BOOLEAN
+  DATE
+  DATETIME
+  SELECT
+}
+
+// =============================================
+// PRODUCTS / INVENTORY
+// =============================================
+
+model Product {
+  id         String   @id @default(cuid())
+  businessId String
+  schemaId   String
+  // Common indexed fields for query performance
+  name       String
+  quantity   Decimal? @db.Decimal(15, 4)
+  price      Decimal? @db.Decimal(15, 2)
+  sku        String?
+  category   String?
+  expiryDate DateTime?
+  // All flexible schema fields stored here
+  fields     Json     @default("{}")
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business       Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  schema         BusinessSchema @relation(fields: [schemaId], references: [id])
+  stockMovements StockMovement[]
+
+  @@index([businessId, isActive])
+  @@index([businessId, name])
+  @@index([businessId, sku])
+  @@index([businessId, category])
+  @@index([businessId, expiryDate])
+}
+
+// =============================================
+// STOCK MOVEMENTS (AUDIT TRAIL)
+// =============================================
+
+model StockMovement {
+  id         String        @id @default(cuid())
+  businessId String
+  productId  String
+  type       MovementType
+  quantity   Decimal       @db.Decimal(15, 4)
+  previousQty Decimal?     @db.Decimal(15, 4)
+  newQty     Decimal?      @db.Decimal(15, 4)
+  reason     String?
+  notes      String?
+  actorId    String?       // User ID who performed this
+  importJobId String?      // If from an import
+  createdAt  DateTime      @default(now())
+
+  business  Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, createdAt])
+  @@index([productId, createdAt])
+}
+
+enum MovementType {
+  IMPORT_INITIAL
+  MANUAL_ADD
+  MANUAL_REDUCE
+  ADJUSTMENT
+  SALE
+  RETURN
+  DAMAGE
+  EXPIRED
+}
+
+// =============================================
+// IMPORT JOBS
+// =============================================
+
+model ImportJob {
+  id           String       @id @default(cuid())
+  businessId   String
+  status       ImportStatus @default(PENDING)
+  fileName     String
+  fileSize     Int
+  mimeType     String
+  storageKey   String?      // S3 key or local path
+  totalRows    Int          @default(0)
+  validRows    Int          @default(0)
+  invalidRows  Int          @default(0)
+  skippedRows  Int          @default(0)
+  importedRows Int          @default(0)
+  detectedCategory BusinessCategory?
+  suggestedSchema  Json?    // The suggested field mappings
+  approvedSchema   Json?    // What the user confirmed
+  errorSummary     Json?    // Validation errors
+  processingMs     Int?     // Processing duration in ms
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
+}
+
+enum ImportStatus {
+  PENDING
+  ANALYZING
+  AWAITING_REVIEW
+  IMPORTING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// =============================================
+// APPLICATION METRICS
+// =============================================
+
+model AppMetric {
+  id        String   @id @default(cuid())
+  name      String
+  value     Float
+  unit      String?
+  labels    Json?    // Key-value labels for filtering
+  recordedAt DateTime @default(now())
+
+  @@index([name, recordedAt])
+}
+
+model RequestLog {
+  id          String   @id @default(cuid())
+  method      String
+  path        String
+  statusCode  Int
+  durationMs  Int
+  businessId  String?
+  userId      String?
+  error       String?
+  recordedAt  DateTime @default(now())
+
+  @@index([recordedAt])
+  @@index([path, recordedAt])
+  @@index([statusCode, recordedAt])
+}

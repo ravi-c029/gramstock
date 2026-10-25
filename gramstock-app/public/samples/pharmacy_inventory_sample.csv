@@ -1,0 +1,13 @@
+Medicine Name,Generic Composition,Batch No,Quantity,Unit,MRP,Purchase Rate,Manufacturer,Expiry Date,Schedule H,Rack Location
+Dolo 650mg Tablet,Paracetamol 650mg,DL8821,450,strip,33.5,24.0,Micro Labs,2027-09-30,No,RACK-A1
+Augmentin 625 Duo,Amoxicillin + Clavulanic Acid,AG1042,85,strip,204.5,155.0,GSK,2026-12-15,Yes,RACK-B2
+Cetirizine 10mg Strip,Cetirizine Hydrochloride,CT9014,300,strip,18.0,9.5,Cipla,2027-11-20,No,RACK-A3
+Azithral 500mg,Azithromycin 500mg,AZ4421,120,strip,119.0,88.0,Alembic,2027-04-15,Yes,RACK-B1
+Benadryl Cough Syrup 100ml,Diphenhydramine + Ammonium Chloride,BN3301,65,bottle,125.0,92.0,Johnson & Johnson,2026-11-01,No,RACK-C1
+Limcee Vitamin C 500mg,Ascorbic Acid Chewable,LC2029,220,strip,24.5,16.0,Abbott,2028-01-31,No,RACK-A2
+Telma 40mg Tablet,Telmisartan 40mg,TL7712,180,strip,112.0,82.0,Glenmark,2027-06-30,Yes,RACK-B4
+Pan D Capsule,Pantoprazole + Domperidone,PD5591,250,strip,195.0,140.0,Alkem,2027-08-31,Yes,RACK-A4
+Betadine 10% Ointment 20g,Povidone Iodine,BT1109,75,tube,85.0,62.0,Win-Medicare,2027-03-31,No,RACK-C3
+N95 Respirator Mask,Filter Particulate Mask,MK9901,150,piece,45.0,22.0,Venus Health,2029-12-31,No,RACK-D1
+Accu-Chek Active Test Strips 50s,Blood Glucose Strips,AC4402,40,box,1025.0,820.0,Roche,2026-10-31,No,RACK-D2
+Volini Pain Relief Gel 50g,Diclofenac Diethylamine,VL8811,90,tube,165.0,122.0,Sun Pharma,2027-05-15,No,RACK-C2

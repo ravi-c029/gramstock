@@ -1,0 +1,1072 @@
+Bhai, dono reference images ka visual direction clear hai: **soft pastel colors, premium rounded cards, clean typography, beautiful product visuals aur app-like navigation.** GramStock ko isi level ka polished experience dena hai, lekin inventory SaaS ke liye aur zyada functional aur data-focused banana hai.
+
+Maine design tokens aur environment-variable handling ke official documentation ko bhi reference kiya hai. Centralized tokens se light/dark themes consistent rahengi, aur secrets ko source code mein hard-code karne ke bajaye environment configuration mein rakha ja sakta hai. [Atlassian Design](https://atlassian.design/tokens/design-tokens/?utm_source=chatgpt.com)
+
+Neeche master prompt hai. Ise apne AI coding agent mein **ek hi project brief ke roop mein paste karna**. Ismein agent ko step-by-step build karne, har stage test karne aur actual functionality verify karne ko kaha gaya hai.
+
+# GramStock Cloud — Master Build Prompt
+
+```text
+PROJECT NAME: GramStock Cloud
+
+TAGLINE:
+One Platform. Every Business. Your Inventory, Your Way.
+
+PROJECT TYPE:
+Adaptive, cloud-ready, multi-business inventory management SaaS.
+
+PRIMARY OBJECTIVE:
+Build a polished, responsive, production-minded MVP of an adaptive inventory management platform.
+
+The platform must allow users to upload their existing inventory datasets, automatically analyze their structure, identify a probable business category, suggest field mappings, edit the suggested schema, and generate a functional inventory interface and dashboard based on the user's approved configuration.
+
+Supported business examples:
+1. Kirana / Grocery Store
+2. Medical / Pharmacy Store
+3. Restaurant / Cafe
+4. Garments / Fashion Retail
+5. General Retail / Other
+
+The architecture must remain extensible to additional business types.
+
+IMPORTANT EXECUTION RULE:
+Do not merely create a landing page, static dashboard, or visual prototype.
+
+Build a working application with functional interactions, persistent data,
+real calculations, validation, loading states, error handling and responsive layouts.
+
+Work incrementally. Inspect the existing repository before making changes.
+Preserve working code where possible. Do not overwrite an existing project
+without understanding its structure.
+
+After each major stage:
+- Run relevant checks.
+- Fix encountered errors.
+- Verify the implemented functionality.
+- Continue to the next stage.
+
+Do not claim a feature is implemented unless it actually works.
+Do not fabricate cloud deployment, monitoring, benchmark or test results.
+```
+
+---
+
+## PHASE 1 — Technology Stack & Architecture
+
+```text
+Use the following stack unless the existing repository requires a justified
+alternative.
+
+Frontend:
+- Next.js App Router
+- React
+- TypeScript with strict type checking
+- Tailwind CSS
+- shadcn/ui or equivalent accessible UI primitives
+- Lucide icons
+- Recharts for data visualization
+- Framer Motion for restrained UI transitions
+
+Typography:
+- Geist Sans or Inter for the main application interface.
+- Geist Mono for technical metadata, identifiers and performance metrics.
+- Use a consistent typographic scale.
+- Avoid decorative fonts for dense inventory tables.
+- Use readable font sizes and weights throughout.
+
+Data Processing:
+- Build a dedicated CSV/XLSX import and schema-analysis module.
+- Validate uploaded data before saving.
+- Keep schema detection separate from dashboard rendering.
+
+Persistence:
+- PostgreSQL for users, businesses, inventory records, schema definitions,
+  import jobs and activity history.
+- Use a proper ORM and database migrations.
+- Select a compatible ORM based on the existing project.
+
+Cloud Storage:
+- Amazon S3 for original uploaded files and generated backups.
+- Use private buckets and restricted access.
+- Use short-lived presigned URLs where appropriate.
+- Never expose AWS credentials to the browser.
+
+Deployment:
+- Dockerize the application.
+- Prepare AWS deployment configuration.
+- Document the actual services required for deployment.
+
+Monitoring:
+- Integrate AWS CloudWatch when AWS infrastructure is configured.
+- Record application-level processing metrics.
+- Do not display invented AWS infrastructure metrics.
+
+Do not introduce unnecessary services or microservices for this MVP.
+Prefer a modular monolith with clear boundaries.
+```
+
+**Important:** Agar existing repository Next.js aur PostgreSQL use karta hai, toh bina reason stack replace mat karna.
+
+---
+
+# PHASE 2 — Premium Design System
+
+Is phase ko sabse carefully implement karna hai.
+
+```text
+DESIGN DIRECTION:
+
+Create a premium, modern, welcoming SaaS interface inspired by the supplied
+mobile UI references.
+
+The visual language should combine:
+- Soft pastel category colors.
+- Refined neutral surfaces.
+- Rounded cards.
+- Excellent spacing.
+- Clear typography.
+- Subtle gradients used selectively.
+- Clean charts and data tables.
+- Smooth, restrained animations.
+- Strong information hierarchy.
+
+The product must feel like a modern business application, not a generic
+admin template.
+
+Avoid:
+- Excessive glassmorphism.
+- Excessive gradients.
+- Oversized empty cards.
+- Too many colors competing for attention.
+- Unnecessary animations.
+- Emoji-based navigation icons.
+- Inconsistent corner radii.
+- Hard-coded one-off colors throughout components.
+```
+
+### A. Centralized Color Tokens
+
+```text
+Create a single source of truth for all design tokens.
+
+Organize tokens into:
+1. Semantic tokens.
+2. Light-theme values.
+3. Dark-theme values.
+4. Business-category accents.
+5. Chart palette.
+6. Typography.
+7. Spacing.
+8. Radius.
+9. Shadows.
+10. Motion.
+
+Example semantic tokens:
+
+--background
+--foreground
+--surface
+--surface-elevated
+--surface-muted
+--card
+--card-foreground
+--border
+--border-strong
+--muted
+--muted-foreground
+--primary
+--primary-foreground
+--secondary
+--accent
+--accent-foreground
+--success
+--warning
+--danger
+--info
+--focus-ring
+
+Use CSS custom properties and connect them to the styling system.
+
+All components must consume semantic tokens rather than hard-coded colors.
+
+Avoid using literal color values inside individual components except in
+the centralized token definitions and justified data visualization utilities.
+
+Every token must have a suitable light-mode and dark-mode value.
+```
+
+### B. Light Mode & Dark Mode
+
+```text
+Implement two complete themes:
+
+1. Light / White Mode
+2. Dark Mode
+
+Light mode:
+- Soft off-white application background.
+- White elevated surfaces.
+- Subtle borders.
+- Dark readable text.
+- Pastel category accents.
+- Minimal, elegant shadows.
+
+Dark mode:
+- Deep charcoal background, not pure black everywhere.
+- Slightly elevated dark card surfaces.
+- Clear text contrast.
+- Muted but distinguishable borders.
+- Carefully adjusted category colors.
+- Charts readable against dark surfaces.
+
+Requirements:
+- Add a theme switcher.
+- Respect the system preference on first visit.
+- Persist the user's selected theme.
+- Avoid a flash of the incorrect theme during page loading.
+- Apply theme tokens consistently across every route and component.
+- Keep charts, dropdowns, dialogs, tables and navigation synchronized.
+- Animate theme changes smoothly without making the interface feel slow.
+- Respect prefers-reduced-motion.
+- Ensure text and controls remain accessible in both themes.
+```
+
+Theme changes must not break status colors, chart legends, hover states, focus rings or form controls.
+
+### C. Business Category Themes
+
+Har business ke liye alag visual identity hogi, lekin application ka base design same rahega.
+
+```text
+Define category-specific accent tokens.
+
+Kirana / Grocery:
+- Fresh leafy green.
+- Soft mint.
+- Warm cream accents.
+
+Medical / Pharmacy:
+- Calm teal.
+- Clinical blue.
+- Soft mint accents.
+
+Restaurant / Cafe:
+- Warm coral.
+- Peach.
+- Muted amber.
+
+Garments / Fashion:
+- Plum.
+- Rose.
+- Soft lavender.
+
+General Retail:
+- Indigo.
+- Sky blue.
+- Neutral blue-gray.
+
+Apply category accents to:
+- Category badge.
+- Primary contextual actions.
+- Selected navigation indicators.
+- Category-specific chart series.
+- Illustrations and empty states.
+- Relevant highlights.
+
+Do not recolor the entire interface for each category.
+Use semantic category accents consistently and maintain readable contrast.
+
+All category palettes must support both light and dark modes.
+```
+
+Category detection uncertain ho toh category color final karne se pehle user ko selection confirm karne do.
+
+---
+
+# PHASE 3 — Responsive Navigation
+
+```text
+Design separate navigation layouts optimized for desktop and mobile.
+
+DESKTOP:
+- Persistent left sidebar.
+- Brand logo and GramStock Cloud name.
+- Overview.
+- Inventory.
+- Analytics.
+- Imports.
+- Reports.
+- Settings.
+- Help.
+- Business switcher.
+- Theme switcher.
+- User profile.
+
+Use a clean top bar for:
+- Current page title.
+- Breadcrumbs where useful.
+- Global search where implemented.
+- Notifications where implemented.
+- Contextual primary action.
+
+Allow the sidebar to collapse when appropriate.
+
+MOBILE:
+- App-like full-screen layout.
+- Compact top bar with page title and contextual actions.
+- Fixed bottom navigation with 4 or 5 primary destinations.
+- Safe-area-aware spacing.
+- Appropriate touch targets.
+- No horizontal page overflow.
+- Scrollable tables or mobile-specific data cards.
+- Bottom sheets or mobile-friendly dialogs where appropriate.
+
+On mobile, keep the main action accessible without covering content.
+
+The bottom navigation must remain stable and usable.
+Desktop side navigation must not appear awkwardly compressed on mobile.
+
+Use responsive breakpoints intentionally and test actual layouts at multiple
+viewport widths.
+```
+
+Suggested mobile navigation:
+
+**Home · Inventory · Add · Analytics · More**
+
+The Add action should open a real flow, not a decorative button.
+
+---
+
+# PHASE 4 — Application Routes
+
+```text
+Implement the following routes.
+
+/
+- Landing page.
+
+ /login
+- Login.
+
+ /signup
+- Registration.
+
+ /onboarding
+- Business setup.
+
+ /dashboard
+- Adaptive business dashboard.
+
+ /inventory
+- Inventory table and management.
+
+ /inventory/[id]
+- Individual product details.
+
+ /imports
+- Upload history and import jobs.
+
+ /analytics
+- Available business analytics.
+
+ /reports
+- Exportable reports.
+
+ /settings
+- Business settings, schema settings and preferences.
+
+ /settings/theme
+- Theme preferences if a separate page is useful.
+
+ /settings/monitoring
+- Application performance metrics, where implemented.
+
+Protect authenticated routes.
+
+Do not display fake login success.
+Use a real authentication implementation or clearly isolate a temporary
+development-only demo mode.
+
+Do not expose private business data through public routes.
+```
+
+---
+
+# PHASE 5 — Dataset Upload & Analysis Engine
+
+**Ye GramStock ka core feature hai.** Is par maximum development effort lagana hai.
+
+```text
+Build a robust dataset import workflow.
+
+Accepted MVP formats:
+- CSV
+- XLSX
+
+Initial upload flow:
+
+STEP 1: SELECT FILE
+- Drag-and-drop upload zone.
+- Browse files button.
+- Accepted format guidance.
+- File size limits from configuration.
+- Upload progress where supported.
+- Clear validation errors.
+
+STEP 2: ANALYZE DATA
+Inspect:
+- Column names.
+- Sample values.
+- Inferred data types.
+- Empty cells.
+- Duplicate headers.
+- Duplicate records where detectable.
+- Numeric and date formats.
+- Possible identifier fields.
+- Possible quantity fields.
+- Possible prices and totals.
+- Potential category-specific fields.
+
+Do not assume that every dataset is an inventory dataset.
+
+STEP 3: SUGGEST CATEGORY
+Suggest one of:
+- Grocery / Kirana.
+- Medical / Pharmacy.
+- Restaurant / Cafe.
+- Garments / Fashion.
+- General Retail.
+- Unknown / Custom.
+
+Display:
+- Suggested category.
+- Reasoning based on detected fields.
+- Confidence only if it is meaningfully calibrated.
+- Missing recommended fields.
+- Ambiguous field mappings.
+
+If the classification is uncertain, ask the user to choose manually.
+
+Never fabricate a confidence score just to make the interface look intelligent.
+
+STEP 4: FIELD MAPPING
+Map source columns to canonical fields where possible.
+
+Examples:
+- Item, Product, ProductName -> Product Name.
+- Qty, Quantity, Stock -> Quantity.
+- Cost, PurchasePrice -> Purchase Price.
+- MRP, SellingPrice -> Selling Price.
+- Expiry, BestBefore -> Expiry Date.
+
+Treat these as mapping suggestions, not guaranteed mappings.
+
+Allow the user to:
+- Change a field mapping.
+- Ignore a source column.
+- Create a custom field.
+- Resolve ambiguous columns.
+- Preview the result before import.
+
+STEP 5: DATA VALIDATION
+Show:
+- Valid rows.
+- Invalid rows.
+- Warnings.
+- Missing required values.
+- Invalid date values.
+- Invalid numeric values.
+- Duplicate identifiers.
+- Rows that will be skipped or require correction.
+
+Provide a way to inspect and correct supported validation errors.
+
+Never silently discard important records.
+
+STEP 6: REVIEW & IMPORT
+Show a final preview.
+Let the user confirm the import.
+Persist the approved schema and valid records.
+Track the import status and errors.
+
+Support a useful error summary for failed imports.
+```
+
+### Data safety requirements
+
+- Parse files on the server where appropriate.
+- Validate file type and content rather than trusting file extensions.
+- Limit upload size and row count.
+- Avoid unsafe spreadsheet formula execution.
+- Do not execute formulas from uploaded workbooks.
+- Sanitize user-supplied field names.
+- Never execute uploaded code or macros.
+- Handle malformed files gracefully.
+
+---
+
+# PHASE 6 — Adaptive Schema Builder
+
+```text
+Build a visual schema editor that allows the user to customize the detected
+dataset before generating the inventory interface.
+
+The editor must support:
+
+- Add field.
+- Rename field.
+- Remove field.
+- Reorder fields.
+- Change supported data type.
+- Mark field as required or optional.
+- Configure unique identifiers.
+- Configure default values.
+- Configure validation rules where appropriate.
+- Define measurement units.
+- Mark a field as suitable for filtering.
+- Mark a numeric field as suitable for aggregation.
+- Preview the updated table.
+
+Supported basic types:
+- Text.
+- Integer.
+- Decimal.
+- Currency.
+- Boolean.
+- Date.
+- Date and time.
+- Category / Select.
+
+Allow custom fields.
+
+Prevent invalid configurations, such as using incompatible field types
+for operations that require numeric values.
+
+Warn before removing a field that contains imported data.
+
+Preserve the original uploaded file separately from the editable schema.
+
+Changing a schema must not silently destroy existing data.
+
+Implement schema versioning or an equivalent safe migration mechanism
+for persisted business configurations.
+
+The editor must work on mobile and desktop.
+```
+
+### One important architecture rule
+
+Schema ko sirf frontend state mein mat rakhna.
+
+Approved schema database mein persist hona chahiye, taaki refresh ke baad bhi configuration available rahe.
+
+Every business should have its own schema configuration.
+
+---
+
+# PHASE 7 — Dynamic Inventory Interface
+
+```text
+Generate the inventory table from the approved schema.
+
+Do not hard-code separate table components for every business category.
+
+Use a reusable, configuration-driven table renderer.
+
+Requirements:
+- Dynamic columns.
+- Search.
+- Sorting.
+- Filtering.
+- Pagination.
+- Column visibility.
+- Add product.
+- Edit product.
+- Delete product with confirmation.
+- Bulk selection where appropriate.
+- Bulk import.
+- Export supported data to CSV.
+- Loading states.
+- Empty states.
+- Validation errors.
+- Success notifications.
+
+Implement actual CRUD operations backed by persistence.
+
+Use safe database queries and validated field mappings.
+
+Support category-specific fields without breaking the generic inventory engine.
+
+Use a suitable database design for flexible fields while preserving validation,
+queryability and tenant isolation.
+
+Do not build unsafe SQL queries by directly concatenating user-supplied column
+names.
+```
+
+The system should allow a business to customize fields without requiring a developer to edit source code.
+
+---
+
+# PHASE 8 — Dynamic Dashboard Generator
+
+```text
+Build a reusable dashboard generator.
+
+The dashboard should derive its available widgets from:
+1. Approved schema.
+2. Available data.
+3. Selected business category.
+4. Configured business rules.
+
+Do not show a widget if its required source data is missing.
+
+Every metric must be computed from actual persisted records.
+
+CORE WIDGETS:
+- Total Products.
+- Total Stock Quantity, when units are compatible.
+- Low Stock Items, when a threshold exists.
+- Inventory Value, when required pricing fields exist.
+- Recent Inventory Changes.
+- Product Distribution.
+- Available Import Summary.
+
+CATEGORY-SPECIFIC EXAMPLES:
+
+GROCERY:
+- Low-stock products.
+- Product category distribution.
+- Inventory value.
+- Expiry tracking if dates exist.
+
+PHARMACY:
+- Batch tracking if batch identifiers exist.
+- Expiry monitoring if valid expiry dates exist.
+- Low-stock medicines.
+- Inventory value if prices exist.
+
+RESTAURANT:
+- Ingredient stock.
+- Low-stock ingredients.
+- Unit-aware inventory.
+- Consumption or wastage metrics only when supporting records exist.
+
+GARMENTS:
+- Size distribution.
+- Color distribution.
+- SKU-level stock.
+- Variant-level inventory.
+
+GENERAL RETAIL:
+- Stock by category.
+- Inventory value.
+- Low-stock products.
+- Available sales summaries.
+
+Provide:
+- Date-range filters when supported by the data.
+- Clear metric definitions.
+- Tooltips explaining calculations.
+- Useful empty states.
+- Responsive charts.
+- Accessible chart labels.
+- Exportable summaries where appropriate.
+
+If the dataset only contains inventory snapshots, do not invent sales history,
+growth rates or best-selling products.
+
+If no reorder threshold is configured, do not label an item low-stock without
+explaining the default rule.
+
+If units differ, do not blindly sum kilograms, litres and individual units.
+
+All dashboard values must come from real calculations on the available data.
+```
+
+---
+
+# PHASE 9 — Product & Inventory Operations
+
+```text
+Implement practical inventory management.
+
+Users should be able to:
+- Add products.
+- Update product details.
+- Adjust stock quantities.
+- Record stock additions and reductions.
+- Configure reorder thresholds.
+- View recent stock movements.
+- Search and filter products.
+- Inspect product details.
+- Export inventory reports.
+
+Where stock movement history is implemented, record:
+- Product reference.
+- Quantity change.
+- Movement type.
+- Timestamp.
+- User or actor where available.
+- Reason where supplied.
+
+Use database transactions for related stock updates.
+
+Validate that quantity changes follow configured rules.
+
+Keep an audit trail for important changes.
+
+Do not treat a CSV import as a sales transaction unless the imported dataset
+explicitly represents sales or stock movements.
+```
+
+---
+
+# PHASE 10 — Smooth Interaction & Micro-Animations
+
+```text
+Use Framer Motion or lightweight CSS transitions selectively.
+
+Implement:
+- Smooth page transitions where appropriate.
+- Animated theme switching.
+- Subtle card hover states.
+- Button interaction feedback.
+- Sidebar transitions.
+- Skeleton loading states.
+- Progress indicators during import.
+- Smooth dialog and sheet transitions.
+- Toast notifications.
+- Helpful empty-state illustrations.
+
+Animation guidelines:
+- Keep transitions fast and subtle.
+- Avoid blocking user interaction.
+- Respect reduced-motion preferences.
+- Avoid excessive parallax or large animated backgrounds.
+- Avoid animating large chart datasets unnecessarily.
+
+Use consistent transition tokens for duration and easing.
+```
+
+---
+
+# PHASE 11 — Authentication, Security & Data Isolation
+
+```text
+Implement secure user and business data handling.
+
+Requirements:
+- Authenticated access to private business data.
+- Business-level tenant isolation.
+- Server-side authorization checks.
+- Input validation.
+- Secure session handling.
+- Protected file access.
+- Restricted object-storage permissions.
+- Safe database access.
+- Rate limiting for sensitive endpoints where appropriate.
+- No sensitive information in logs.
+- No API secrets in frontend bundles.
+
+Every database query involving business data must enforce the authorized
+business scope.
+
+Do not rely solely on client-side route protection.
+
+Use least-privilege access for infrastructure permissions.
+
+Keep credentials out of source code, Docker images and committed files.
+```
+
+---
+
+# PHASE 12 — Environment Variables & Secret Management
+
+```text
+Create a documented environment configuration system.
+
+Provide:
+- .env.example with placeholder values only.
+- A correct .gitignore.
+- Startup validation for required environment variables.
+- Separate development and production configuration guidance.
+- Clear errors when required configuration is missing.
+
+Potential variables:
+
+DATABASE_URL=
+AUTH_SECRET=
+AWS_REGION=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_S3_BUCKET=
+AWS_ROLE_ARN=
+APP_BASE_URL=
+
+Only include variables that the chosen implementation actually requires.
+
+Prefer IAM roles or other supported short-lived credential mechanisms
+over long-lived static cloud credentials in deployed environments.
+
+Never hard-code:
+- Passwords.
+- Tokens.
+- Database connection strings.
+- AWS credentials.
+- Authentication secrets.
+- Private API keys.
+- Production URLs that must be configurable.
+
+Do not invent working credentials.
+
+Do not print secret values in logs or debugging output.
+
+Use NEXT_PUBLIC_ only for values intentionally safe to expose to the browser.
+
+If configuration is missing, explain what must be configured instead of
+silently replacing a required integration with fake data.
+```
+
+---
+
+# PHASE 13 — Actual Cloud Computing Implementation
+
+```text
+Prepare a deployable cloud architecture.
+
+Proposed AWS components:
+- Amazon EC2 for application hosting.
+- Amazon S3 for uploaded source files and backups.
+- Amazon RDS for PostgreSQL, if available and configured.
+- Amazon CloudWatch for monitoring and logs.
+- AWS IAM for access control.
+- Docker for application containerization.
+
+Document the purpose of each selected service.
+
+Build the application so that local development remains possible without
+AWS credentials.
+
+Use an explicit storage abstraction to separate local development storage
+from S3-backed storage.
+
+Do not pretend local storage is AWS S3.
+
+Do not claim AWS deployment is complete until the application is deployed
+and verified against the configured AWS resources.
+```
+
+### Docker requirements
+
+```text
+Provide:
+- Dockerfile.
+- .dockerignore.
+- Docker Compose configuration for local dependencies where appropriate.
+- Health endpoint.
+- Startup instructions.
+- Environment-variable documentation.
+- Persistent database configuration.
+- Safe shutdown handling.
+
+The application should run in a reproducible environment.
+
+Do not put secrets in the Docker image or build arguments.
+```
+
+---
+
+# PHASE 14 — SLA, Performance Metrics & TTR
+
+This section is critical for your Cloud Computing mini-project.
+
+```text
+Implement a lightweight reliability and performance monitoring module.
+
+Collect real application-level metrics such as:
+- Request count.
+- Request duration.
+- Error count.
+- Dataset processing duration.
+- Rows processed.
+- Import success and failure counts.
+- Storage operation duration.
+- Application health status.
+
+Where appropriate, integrate infrastructure metrics from CloudWatch.
+
+Do not confuse application-level measurements with actual AWS infrastructure
+metrics.
+
+Do not generate fake latency values, synthetic availability percentages,
+or fabricated CloudWatch data.
+
+SLA:
+Allow proposed response-time and availability targets to be configured.
+
+TTR:
+Measure recovery time for a documented failure scenario.
+
+Failure demonstration:
+1. Detect an application failure.
+2. Record the incident.
+3. Perform the configured recovery action.
+4. Verify the application health.
+5. Record the measured recovery duration.
+
+Report target versus observed values separately.
+
+If a value has not been measured, show "Not measured" rather than inventing it.
+```
+
+---
+
+# PHASE 15 — Testing & Quality Assurance
+
+```text
+Write and execute relevant automated tests.
+
+Cover:
+- Dataset parsing.
+- Field mapping.
+- Schema validation.
+- Invalid files.
+- Empty datasets.
+- Duplicate columns.
+- Incorrect data types.
+- Inventory CRUD.
+- Dashboard calculations.
+- Business-level data isolation.
+- Authentication and authorization.
+- Theme switching.
+- Responsive navigation.
+- API validation.
+- Import failures.
+- Cloud storage error handling.
+- Health endpoint.
+- Docker startup.
+
+Run:
+- Type checking.
+- Linting.
+- Production build.
+- Relevant unit tests.
+- Integration tests where configured.
+
+Fix discovered errors before marking a phase complete.
+
+Do not claim tests passed if they were not executed.
+```
+
+---
+
+# PHASE 16 — Final Visual Quality Check
+
+```text
+Inspect the application at the following viewport sizes:
+
+Mobile:
+- 360 px width.
+- 390 px width.
+- 430 px width.
+
+Tablet:
+- 768 px width.
+
+Laptop/Desktop:
+- 1280 px width.
+- 1440 px width.
+
+Test both light and dark modes.
+
+Inspect:
+- Navigation.
+- Dashboard cards.
+- Tables.
+- Charts.
+- Dialogs.
+- Forms.
+- Import wizard.
+- Schema editor.
+- Notifications.
+- Settings.
+- Empty states.
+- Error states.
+
+Check for:
+- Horizontal overflow.
+- Overlapping controls.
+- Clipped content.
+- Poor contrast.
+- Inconsistent spacing.
+- Unreadable typography.
+- Broken theme colors.
+- Mobile navigation covering content.
+- Buttons without functional behavior.
+- Misleading or fabricated data.
+
+Refine the implementation until the core experience is coherent across
+all supported viewport sizes.
+```
+
+---
+
+# PHASE 17 — Final Deliverables
+
+```text
+At completion, provide:
+
+1. Working GramStock Cloud application.
+2. Responsive light and dark themes.
+3. Centralized design-token system.
+4. Adaptive dataset import workflow.
+5. Business-category suggestions.
+6. Editable schema builder.
+7. Dynamic inventory table.
+8. Data-driven dashboards.
+9. Persistent database integration.
+10. Docker configuration.
+11. AWS storage integration where configured.
+12. Monitoring integration where configured.
+13. SLA/TTR measurement workflow.
+14. Automated tests.
+15. README with setup instructions.
+16. .env.example.
+17. Database migration instructions.
+18. Architecture diagram.
+19. API documentation or endpoint summary.
+20. Demo instructions.
+21. Known limitations.
+22. Clear distinction between implemented, tested and planned features.
+
+Do not stop after generating the UI.
+
+Prioritize a smaller number of fully functional features over a large number
+of incomplete placeholder screens.
+```
+
+---
+
+# Bhai, ab sabse important implementation strategy
+
+**Poora prompt paste karne ke baad AI agent ko ek hi baar mein sab kuch generate karne ke liye force mat karna.** Prompt mein phases hain, toh agent ko pehle architecture aur design tokens complete karne, phir core workflow implement karne aur uske baad cloud integration karne do.
+
+Mera recommended order:
+
+| Priority | Build Stage | Result |
+|---|---|---|
+| 1 | Design system + responsive shell | Premium application foundation |
+| 2 | Dataset upload + analysis | Core product functionality |
+| 3 | Schema editor | Adaptive configuration |
+| 4 | Dynamic inventory table | Functional data management |
+| 5 | Dashboard generator | Category-specific experience |
+| 6 | Database + authentication | Persistent, isolated business data |
+| 7 | Docker + AWS storage | Cloud deployment foundation |
+| 8 | Monitoring + SLA/TTR | Academic cloud-computing requirements |
+| 9 | Testing + polish | Demo-ready MVP |
+
+**Ek final rule:** UI pehle visually complete ho sakta hai, lekin product tabhi complete maana jayega jab upload se lekar schema confirmation, database persistence aur generated dashboard tak ka poora flow actually work kare.
+
+Is tarah GramStock Cloud sirf khoobsurat inventory dashboard nahi, balki ek genuinely adaptive cloud application banega.
