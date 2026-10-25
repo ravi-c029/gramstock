@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getActiveAdapterName } from "@/lib/storage/adapter";
 
+import { checkPrismaConnection } from "@/lib/data-store";
+
 export async function GET(_request: NextRequest) {
   const adapterName = getActiveAdapterName();
   const s3Bucket = process.env.AWS_S3_BUCKET || "gramstock-cloud-dataset-2026";
@@ -9,15 +11,18 @@ export async function GET(_request: NextRequest) {
 
   // Compute live latency metrics from DB or realistic baseline
   let recentHealthChecks: { value: number; recordedAt: Date }[] = [];
-  try {
-    recentHealthChecks = await prisma.appMetric.findMany({
-      where: { name: "health_check" },
-      orderBy: { recordedAt: "desc" },
-      take: 20,
-      select: { value: true, recordedAt: true },
-    });
-  } catch {
-    // fallback if db has no metrics
+  const isPg = await checkPrismaConnection();
+  if (isPg) {
+    try {
+      recentHealthChecks = await prisma.appMetric.findMany({
+        where: { name: "health_check" },
+        orderBy: { recordedAt: "desc" },
+        take: 20,
+        select: { value: true, recordedAt: true },
+      });
+    } catch {
+      // fallback if db has no metrics
+    }
   }
 
   // Generate 24-point hourly latency and availability trend

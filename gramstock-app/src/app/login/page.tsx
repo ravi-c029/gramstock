@@ -100,15 +100,10 @@ function LoginForm() {
         return;
       }
 
-      if (loginEmail === "admin@gramstock.cloud") {
-        router.push("/audit");
-      } else {
-        router.push(redirectPath);
-      }
-      router.refresh();
+      const target = loginEmail === "admin@gramstock.cloud" ? "/audit" : redirectPath;
+      window.location.href = target;
     } catch {
       setError("Authentication failed. Please check network and try again.");
-    } finally {
       setLoading(false);
     }
   };

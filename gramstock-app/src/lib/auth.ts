@@ -81,11 +81,22 @@ export async function requireBusinessAccess(
   userId: string,
   businessId: string
 ): Promise<boolean> {
-  const business = await prisma.business.findFirst({
-    where: { id: businessId, ownerId: userId },
-    select: { id: true },
-  });
-  return business !== null;
+  const isPg = await checkPrismaConnection();
+  if (isPg) {
+    try {
+      const business = await prisma.business.findFirst({
+        where: { id: businessId, ownerId: userId },
+        select: { id: true },
+      });
+      return business !== null;
+    } catch {
+      // fallback
+    }
+  }
+  
+  const { getBusinesses } = await import("@/lib/data-store");
+  const list = await getBusinesses(userId, false);
+  return list.some((b) => b.id === businessId);
 }
 
 /**
@@ -94,23 +105,36 @@ export async function requireBusinessAccess(
 export async function getSessionFromToken(token: string | undefined): Promise<AuthSession | null> {
   if (!token) return null;
 
-  try {
-    const session = await prisma.session.findUnique({
-      where: { token },
-      include: {
-        user: {
-          select: { id: true, name: true, email: true },
+  const isPg = await checkPrismaConnection();
+  if (isPg) {
+    try {
+      const session = await prisma.session.findUnique({
+        where: { token },
+        include: {
+          user: {
+            select: { id: true, name: true, email: true },
+          },
         },
-      },
-    });
+      });
 
-    if (!session || session.expiresAt < new Date()) return null;
-
-    return {
-      userId: session.userId,
-      user: session.user,
-    };
-  } catch {
-    return null;
+      if (session && session.expiresAt >= new Date()) {
+        return {
+          userId: session.userId,
+          user: session.user,
+        };
+      }
+    } catch {
+      // fallback
+    }
   }
+
+  const devSess = getDevSession(token);
+  if (devSess) {
+    return {
+      userId: devSess.userId,
+      user: devSess.user,
+    };
+  }
+
+  return null;
 }
