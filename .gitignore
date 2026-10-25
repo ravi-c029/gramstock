@@ -44,6 +44,15 @@ next-env.d.ts
 ~$*
 *.tmp
 
+# Presentations & Presentation Generator Scripts (Kept local, excluded from GitHub)
+*.pptx
+*.py
+START_HERE_MASTER_PROMPT.txt
+project_struct.txt
+IMPLEMENTATION_PLAN.md
+PRESENTATION_SPEAKING_GUIDE.md
+VIVA_3_MINUTE_WALKTHROUGH.md
+
 # Operating System files
 .DS_Store
 Thumbs.db
